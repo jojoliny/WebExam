@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+ 
+<!-- <filter>
+		<filter-name>authFilter</filter-name>
+		<filter-class>com.huaxin.webexam.web.back.filter.AuthFilter</filter-class>	
+	</filter>
+	<filter-mapping>
+			<filter-name>authFilter</filter-name>
+			<url-pattern>/StudentServlet</url-pattern>
+	</filter-mapping> -->
+ 
+ 
+  <servlet>
+    <description></description>
+    <display-name>CommonServlet</display-name>
+    <servlet-name>CommonServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.common.CommonServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CommonServlet</servlet-name>
+    <url-pattern>/CommonServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>ValidateCode</display-name>
+    <servlet-name>ValidateCode</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.common.ValidateCode</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ValidateCode</servlet-name>
+    <url-pattern>/ValidateCode</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>TestServlet</display-name>
+    <servlet-name>TestServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.common.TestServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TestServlet</servlet-name>
+    <url-pattern>/TestServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>StudentServlet</display-name>
+    <servlet-name>StudentServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.back.StudentServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>StudentServlet</servlet-name>
+    <url-pattern>/StudentServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>EmailServlet</display-name>
+    <servlet-name>EmailServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.back.EmailServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>EmailServlet</servlet-name>
+    <url-pattern>/EmailServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>TeacherServlet</display-name>
+    <servlet-name>TeacherServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.back.TeacherServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TeacherServlet</servlet-name>
+    <url-pattern>/TeacherServlet</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <description></description>
+    <display-name>QuestionServlet</display-name>
+    <servlet-name>QuestionServlet</servlet-name>
+    <servlet-class>com.huaxin.webexam.web.back.QuestionServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>QuestionServlet</servlet-name>
+    <url-pattern>/QuestionServlet</url-pattern>
+  </servlet-mapping>
+</web-app>

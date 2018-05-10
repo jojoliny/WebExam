@@ -1,0 +1,402 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/common/common_tag.jsp"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<!DOCTYPE html>
+<!-- saved from url=(0044)http://www.sucaihuo.com/jquery/10/1090/demo/ -->
+<html><head lang="en"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>参与考试</title>
+<link rel="stylesheet" type="text/css" href="css/bootstrap-3.3.4.css">
+<link href="css/studentQuestion_index/index.css" rel="stylesheet" type="text/css">
+<script src="js/jquery-1.9.1.min.js"></script>
+<script src="js/bootstrap.js"></script>
+<script type="text/javascript" src="js/Questions.js"></script>
+
+
+<script> 
+var HH = 0;//时
+var mm = 0;//分
+var ss = 0;//秒
+var timeState = true;//时间状态 默认为true 开启时间
+var questions=${questions};
+var itemList=["A","B","C","D"]
+var activeQuestion=0; //当前操作的考题编号
+var questioned = 0; //
+var checkQues = []; //已做答的题的集合
+
+
+
+
+
+
+/*实现计时器*/
+var time = setInterval(function () {
+    if (timeState) {
+        if (HH == 24) HH = 0;
+        str = "";
+        if (++ss == 60) {
+            if (++mm == 60) { HH++; mm = 0; }
+            ss = 0;
+        }
+        str += HH < 10 ? "0" + HH : HH;
+        str += ":";
+        str += mm < 10 ? "0" + mm : mm;
+        str += ":";
+        str += ss < 10 ? "0" + ss : ss;
+        $(".time").text(str);
+    } else {
+        $(".time").text(str);
+    }
+}, 1000);
+//展示考卷信息
+function showQuestion(id){
+    $(".questioned").text(id+1);
+    questioned = (id+1)/questions.length
+    if(activeQuestion!=undefined){
+        $("#ques"+activeQuestion).removeClass("question_id").addClass("active_question_id");
+    }
+    activeQuestion = id;
+    $(".question").find(".question_info").remove();
+    var question = questions[id];
+    $(".question_title").html("<strong >第 "+(id+1)+" 题 、</strong>"+question.questions+"<input value="+(id+1)+" name=realIdEnd class=hidden>");
+    
+    var items=new Array(4);
+    items[0]= question.questionA;
+    items[1]=question.questionB;
+    items[2]=question.questionC;
+    items[3]=question.questionD;
+    var item="";
+    for(var i=0;i<4;i++){
+        item ="<li class='question_info' onclick='clickTrim(this)' id='item"
+                +i+"'><input type='radio' name='item' value='"+itemList[i]+"'>&nbsp;"+itemList[i]+"."+items[i]+"</li>";
+        $(".question").append(item);
+    }
+    $(".question").attr("id","question"+id);
+    $("#ques"+id).removeClass("active_question_id").addClass("question_id");
+    for(var i=0;i<checkQues.length;i++){
+        if(checkQues[i].id==id){
+            $("#"+checkQues[i].item).find("input").prop("checked","checked");
+            $("#"+checkQues[i].item).addClass("clickTrim");
+            $("#ques"+activeQuestion).removeClass("question_id").addClass("clickQue");
+        }
+    }
+    $("#unHeart").show();
+    $("#heart").hide();
+    progress();
+}
+
+/*答题卡*/
+function answerCard(){
+    $(".question_sum").text(questions.length);
+    for(var i=0;i<questions.length;i++){
+        var questionId ="<li id='ques"+i+"'onclick='saveQuestionState("+i+")' class='questionId'>"+(i+1)+"</li>";
+        $("#answerCard ul").append(questionId);
+    }
+}
+
+/*选中考题*/
+var Question;
+function clickTrim(source){
+	var id = source.id;
+    $("#"+id).find("input").prop("checked","checked");
+    $("#"+id).addClass("clickTrim");
+    $("#ques"+activeQuestion).removeClass("question_id").addClass("clickQue");
+    var ques =0;
+    for(var i=0;i<checkQues.length;i++){
+       if( checkQues[i].id==activeQuestion&&checkQues[i].item!=id){
+           ques = checkQues[i].id;
+           checkQues[i].item = id;//获取当前考题的选项ID
+           checkQues[i].answer =$("#"+id).find("input[name=item]:checked").val();//获取当前考题的选项值
+       }
+    }
+    if(checkQues.length==0||Question!=activeQuestion&&activeQuestion!=ques){
+        var check ={};
+        check.id=activeQuestion;//获取当前考题的编号
+        check.item = id;//获取当前考题的选项ID
+        check.answer =$("#"+id).find("input[name=item]:checked").val();//获取当前考题的选项值
+        checkQues.push(check);
+    }
+    $(".question_info").each(function(){
+        var otherId =$(this).attr("id");
+        if(otherId!=id){
+            $("#"+otherId).find("input").prop("checked",false);
+            $("#"+otherId).removeClass("clickTrim");
+        }
+    })
+    Question = activeQuestion;
+}
+
+/*设置进度条*/
+function progress(){
+    var prog = ($(".active_question_id").length+1)/questions.length;
+    var pro = $(".progress").parent().width() * prog;
+    $(".progres").text((prog*100).toString().substr(0,5)+"%")
+    $(".progress").animate({
+        width: pro,
+        opacity: 0.5
+    }, 1000);
+}
+
+/*保存考题状态 已做答的状态*/
+function saveQuestionState(clickId){
+    showQuestion(clickId)
+}
+
+$(function(){
+    $(".middle-top-left").width($(".middle-top").width()-$(".middle-top-right").width())
+    $(".progress-left").width($(".middle-top-left").width()-200);
+    progress();
+    answerCard();
+    showQuestion(0);
+    /*alert(QuestionJosn.length);*/
+    /*实现进度条信息加载的动画*/
+    var str = '';
+    /*开启或者停止时间*/
+    $(".time-stop").click(function () {
+        timeState = false;
+        $(this).hide();
+        $(".time-start").show();
+    });
+    $(".time-start").click(function () {
+        timeState = true;
+        $(this).hide();
+        $(".time-stop").show();
+    });
+
+    /*收藏按钮的切换*/
+    $("#unHeart").click(function(){
+        var url ="${ctx }/QuestionServlet?method=toCollect";
+ 		var id=activeQuestion;
+ 		var param="id="+id;
+ 		$.post(url,param,function(resultData){
+ 		},"text");
+ 		
+        $(this).hide();
+        $("#heart").show();
+    })
+    $("#heart").click(function(){
+    var url ="${ctx }/QuestionServlet?method=toCancelCollect";
+ 		var id=activeQuestion;
+ 		var param="id="+id;
+ 		$.post(url,param,function(resultData){
+ 		},"text");
+ 		
+        $(this).hide();
+        $("#unHeart").show();
+    })
+
+    /*答题卡的切换*/
+    $("#openCard").click(function(){
+        $("#closeCard").show();
+        $("#answerCard").slideDown();
+        $(this).hide();
+    })
+    $("#closeCard").click(function(){
+        $("#openCard").show();
+        $("#answerCard").slideUp();
+        $(this).hide();
+    })
+
+    //提交试卷
+    $("#submitQuestions").click(function(){
+       /* alert(JSON.stringify(checkQues));*/
+        alert("已做答:"+($(".clickQue").length)+"道题,还有"+(questions.length-($(".clickQue").length))+"道题未完成");
+        
+    })
+     
+    //进入下一题
+    $("#nextQuestion").click(function(){
+     		//发送ajax
+     		if((activeQuestion+1)<questions.length)	{
+     		var url ="${ctx }/QuestionServlet?method=toCalculateGrades";
+     		var id=activeQuestion;
+     		var param="YourAnswer="+$("input[name='item']:checked").val()+"&id="+id;
+     		$.post(url,param,function(resultData){
+     		},"text");
+     		}
+        if((activeQuestion+1)!=questions.length) showQuestion(activeQuestion+1);
+        showQuestion(activeQuestion);
+       
+    })
+    // 进入上一题
+   /*  $("#foreQuestion").click(function(){
+     		//发送ajax
+     		if((activeQuestion-1)>=0)	{
+     		var url ="${ctx }/QuestionServlet?method=toCalculateGrades";
+     		var id=activeQuestion;
+     		var param="YourAnswer="+$("input[name='item']:checked").val()+"&id="+id;
+     		$.post(url,param,function(resultData){
+     		},"text");
+     		}
+        if((activeQuestion-1)!=-1) showQuestion(activeQuestion-1);
+        showQuestion(activeQuestion);
+       
+    }) */
+})
+
+
+
+function subm(){
+var YourAnswer=JSON.stringify(checkQues);
+
+window.location.href="${ctx }/QuestionServlet?method=toCalculateGrade&YourAnswer="+YourAnswer;
+}
+</script>
+
+</head>
+<body>
+<div>
+  <div class="col-md-1"></div>
+  <div class="col-md-10">
+    <div class="content">
+      <div class="row">
+        <div class="btn-group">
+          <button class="btn btn-default" type="button" onclick="history.go(-1);">返回上一个页面</button>
+          <button class="btn btn-default" type="button" onclick="location.reload()">刷新</button>
+        </div>
+      </div>
+     
+      <div style="width: 100%;height:auto;display: inline-block;border: 1px solid white;position: relative;margin-top:10px;">
+        <div style="width: 100%;">
+          <div style="width: 80%;margin: 0px auto">
+            <div style="width: 100%;height:100px;border: 1px solid #CCC;border-bottom:none;background:#FFF;">
+              
+              <div class="middle-top" style="width: 100%;height: 50px;border-bottom: 1px solid #CCC;background:#2D3339; position:relative;">
+                
+                <div class="middle-top-left pull-left" style="height: 100%; padding-left: 20px; background: rgb(35, 44, 49); color: rgb(255, 255, 255); width: 742px;">
+                  <div class="text-center pull-left progress-left" style="border: 1px solid rgb(162, 198, 154); background: rgb(255, 255, 255); border-radius: 10px; line-height: 20px; height: 20px; margin: 15px 0px; font-size: 11px; position: relative; width: 524px;">
+                    <div class="progress pull-left" style="background: rgb(96, 158, 83); width: 26.1px; height: 18px; position: absolute; left: 0px; opacity: 0.5;"></div>
+                    <div class="pro-text" style="left: 0px;color: #609E53;position:absolute;top:0px;width:100%;"> 已完成<span class="progres">5%</span></div>
+                  </div>
+                  <div class="pull-left" style=" width:135px;line-height:20px;height:20px;margin:15px;font-size:15px;"> 
+                    <!--已做答的数量和考题总数--> 
+                                      当前第<span class="questioned">1</span>题/共<span class="question_sum">17</span>题 </div>
+                </div>
+                
+                
+                <div class="middle-top-right text-center pull-left" style="width:160px; height: 100%;border-left: 1px solid red;position: absolute;right: 0px;">
+                  <div class="stop pull-left" style="width: 50px; height: 100%;padding: 10px;"> <a href="javascript:void(0);" class="text-center" style="color: #FE6547;">
+                    <div class="time-stop glyphicon glyphicon-pause" title="暂停" style="width:30px;height: 30px;line-height:30px; border-radius:15px;border: 1px solid #FE6547;"></div>
+                    <div class="time-start glyphicon glyphicon-play" title="开始" style="width:30px;height: 30px;line-height:30px;border-radius:15px;border: 1px solid #FE6547;display:none;"></div>
+                    </a> </div>
+                  <div class="pull-left" style="width: 100px; height: 100%;padding: 10px 0px 10px 0px;">
+                    <div class="time" style="width:100px;height: 30px;line-height:30px; border-radius:15px;font-size:20px;color:#FFF;">00:00:15</div>
+                  </div>
+                </div>
+                
+                
+              </div>
+              
+              
+              <div style="width: 100%;height: 50px;font-size:15px;color: #000;line-height: 50px;padding-left: 20px;">
+                <div style="color:#FFF;background: red;width: 22px;height: 22px;border-radius:11px;line-height:22px;font-size:13px; text-align: center;" class="glyphicon glyphicon-map-marker"></div>
+                [单选题] 
+              </div>
+            </div>
+            
+            <form action="${ctx }/QuestionServlet?method=toCalculateGrade" method="post">
+            <!--题目与选项-->
+            <div style="width: 100%;height:auto;display: inline-block;border: 1px solid #CCC;border-bottom:1px dashed #CCC;background:#FFF;">
+              <div style="width: 100%;height: 90%;padding:20px 20px 0px 20px;"> 
+	                <!--试题区域-->
+	                <!--
+                    	ul不能少
+                    -->
+	                 <!--试题区域-->
+                <ul class="list-unstyled question" id="question3" name="">
+                	
+                	
+                	<!--
+                      	下面三行注释掉第一个答案就不会保存
+                      -->
+	                  <!--<li class="question_title"><strong>第 1 题 、</strong>下丘脑与腺垂体之间主要通过下列哪条途径联系？ </li>
+	                  <li class="question_info" onclick="clickTrim(this)" id="item0">
+	                	<input type="radio" name="item" value="A">&nbsp;A.神经纤维</li><li class="question_info" onclick="clickTrim(this)" id="item1"><input type="radio" name="item" value="B">&nbsp;B.神经纤维和门脉系统</li><li class="question_info" onclick="clickTrim(this)" id="item2"><input type="radio" name="item" value="C">&nbsp;C.垂体门脉系统</li><li class="question_info" onclick="clickTrim(this)" id="item3"><input type="radio" name="item" value="D">&nbsp;D.垂体束</li><li class="question_info" onclick="clickTrim(this)" id="item4"><input type="radio" name="item" value="E">&nbsp;E.轴浆运输</li>-->
+	                  
+                	
+                    <li class="question_title">
+                    	<strong></strong>
+                    </li>
+                    <li class="question_info" onclick="clickTrim(this)" id="item0">
+                		<input type="radio" name="item" value="A">&nbsp;</li>
+                	<li class="question_info" onclick="clickTrim(this)" id="item1">
+                		<input type="radio" name="item" value="B">&nbsp;
+                	</li>
+                	<li class="question_info" onclick="clickTrim(this)" id="item2">
+                		<input type="radio" name="item" value="C">&nbsp;
+                	</li>
+                	<li class="question_info" onclick="clickTrim(this)" id="item3">
+                		<input type="radio" name="item" value="D">&nbsp;</li>
+	                  
+	                </ul>
+		                <!--考题的操作区域-->
+		                <div class="operation" style="margin-top: 20px;">
+		                  <div class="text-left" style="margin-left:20px;font-size: 15px;float: left;line-height: 30px;">
+		                    <div id="unHeart" style="color:#999999;"> <span class="glyphicon glyphicon-heart-empty"></span> <span>收藏本题</span> </div>
+		                    <div id="heart" style="color:#C40000;display: none;"> <span class="glyphicon glyphicon-heart"></span> <span>已收藏</span> </div>
+		                  </div>
+		                  
+		                  <div class="text-right" style="margin-right: 20px;">
+		                    <div class="form-group" style="color: #FFF;">
+		                      <!-- <button class="btn btn-info" id="foreQuestion" type="button">上一题</button> -->
+		                   	  
+		                      <button class="btn btn-success" id="submitQuestions" type="submit">提交试卷</button>
+		                      <button class="btn btn-info" id="nextQuestion" type="button">下一题</button>
+		                      
+		                    </div>
+		                  </div>
+		                </div>
+              </div>
+            </div>
+            </form>
+            <!--
+            	答题卡
+            -->
+            <div style="width: 100%;height:auto;display: inline-block;border: 1px solid #CCC;border-top:none;background:#FFF;">
+              <div style="width: 100%;padding:20px;">
+                <div class="panel-default">
+                  <div class="panel-heading" id="closeCard" style="color: #DCE4EC;font-size: 15px;display: none;background: none;">
+                  <span>收起答题卡</span> <span class="glyphicon glyphicon-chevron-up"></span> </div>
+                <div class="panel-heading" id="openCard" style="font-size: 15px;background: none;"> <span>展开答题卡</span> <span class="glyphicon glyphicon-chevron-down"></span> </div>
+                <div id="answerCard" style="display: none;">
+                  <div class="panel-body form-horizontal" style="padding: 0px;">
+                    <ul class="list-unstyled">
+                    	
+                    <!--<li id="ques0" onclick="saveQuestionState(0)" class="questionId question_id">1</li>
+                    <li id="ques1" onclick="saveQuestionState(1)" class="questionId">2</li>
+                    <li id="ques2" onclick="saveQuestionState(2)" class="questionId">3</li>
+                    <li id="ques3" onclick="saveQuestionState(3)" class="questionId">4</li>
+                    <li id="ques4" onclick="saveQuestionState(4)" class="questionId">5</li>
+                    <li id="ques5" onclick="saveQuestionState(5)" class="questionId">6</li>
+                    <li id="ques6" onclick="saveQuestionState(6)" class="questionId">7</li>
+                    <li id="ques7" onclick="saveQuestionState(7)" class="questionId">8</li>
+                    <li id="ques8" onclick="saveQuestionState(8)" class="questionId">9</li>
+                    <li id="ques9" onclick="saveQuestionState(9)" class="questionId">10</li>
+                    <li id="ques10" onclick="saveQuestionState(10)" class="questionId">11</li>
+                    <li id="ques11" onclick="saveQuestionState(11)" class="questionId">12</li>
+                    <li id="ques12" onclick="saveQuestionState(12)" class="questionId">13</li>
+                    <li id="ques13" onclick="saveQuestionState(13)" class="questionId">14</li>
+                    <li id="ques14" onclick="saveQuestionState(14)" class="questionId">15</li>
+                    <li id="ques15" onclick="saveQuestionState(15)" class="questionId">16</li>
+                    <li id="ques16" onclick="saveQuestionState(16)" class="questionId">17</li>-->
+                   
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+			    <div style="width: 100%;height: auto;display: inline-block;border: 1px solid white;">
+			      <div class="text-center" style="width: 100%;"> 底部 </div>
+			    </div>
+  </div>
+</div>
+<div class="col-md-1"></div>
+</div>
+
+</body></html>
